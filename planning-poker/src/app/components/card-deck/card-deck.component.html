@@ -1,0 +1,10 @@
+<div class="card-deck-container">
+    @for (card of cards; track $index) {
+    <app-card [class.raised]="card.selected"
+     (onSelected)="onSelected(card.value)" [value]="card.value" [highlight]="card.selected">
+        <div>
+            <span>{{card.value}}</span>
+        </div>
+    </app-card>
+    }
+</div>

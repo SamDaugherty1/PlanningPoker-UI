@@ -1,0 +1,52 @@
+.overall-container {
+    margin: auto;
+    width: 75%;
+    background-color: red;
+}
+
+.table-container {
+    position: relative;
+    width: 400px;
+    height: 400px;
+    margin: 50px auto;
+  }
+  
+  .table {
+    width: 200px;
+    height: 200px;
+    background-color: green;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  .player {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    width: 60px;
+    height: 80px;
+    background-color: gray;
+    border: 2px solid black;
+    border-radius: 15%;
+    font-size: 14px;
+    text-align: center;
+    transform: translate(-50%, -50%);
+
+    &.selected {
+      background-color: white;
+    }
+  }
+  
+  .player-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+  }
+  
