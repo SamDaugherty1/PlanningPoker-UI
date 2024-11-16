@@ -15,6 +15,8 @@ export class UserService {
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
+        // Ensure card is null when loading from storage
+        user.card = null;
         this.currentUser.next(user);
       } catch (e) {
         console.error('Failed to parse stored user:', e);
@@ -50,7 +52,9 @@ export class UserService {
     const currentUser = this.currentUser.value;
     if (currentUser) {
       const updatedUser = { ...currentUser, card };
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      // Only store user info without card in localStorage
+      const storageUser = { ...updatedUser, card: null };
+      localStorage.setItem('currentUser', JSON.stringify(storageUser));
       this.currentUser.next(updatedUser);
     }
   }

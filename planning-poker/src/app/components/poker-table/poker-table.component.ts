@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CardDeckComponent } from '../card-deck/card-deck.component';
 import { AppStateService } from '../../services/app-state.service';
+import { UserService } from '../../services/user.service';
 import { PokerCard } from '../../models/poker-card';
 import { Player } from '../../models/player';
 import { Subscription, map, distinctUntilChanged } from 'rxjs';
@@ -15,12 +16,20 @@ import { Subscription, map, distinctUntilChanged } from 'rxjs';
 })
 export class PokerTableComponent implements OnInit, OnDestroy {
   private appState = inject(AppStateService);
+  private userService = inject(UserService);
   private subscriptions = new Subscription();
 
   players$ = this.appState.players$;
   showCards$ = this.appState.showCards$;
+  currentUser$ = this.userService.currentUser$;
+  
+  // Enable Show Cards button when at least one non-view-only player has selected a card
   allCardsSubmitted$ = this.appState.players$.pipe(
-    map(players => players.some((p: Player) => !p.viewOnly && p.card !== null))
+    map(players => {
+      const nonViewOnlyPlayers = players.filter(p => !p.viewOnly);
+      return nonViewOnlyPlayers.length > 0 && 
+             nonViewOnlyPlayers.some(p => p.card !== null);
+    })
   );
 
   infinity = PokerCard.Infinity;
@@ -29,12 +38,15 @@ export class PokerTableComponent implements OnInit, OnDestroy {
   averageEstimate$ = this.appState.players$.pipe(
     map(players => {
       const estimates = players
-        .filter((p: Player) => !p.viewOnly)
+        .filter(p => !p.viewOnly && p.card !== null)
         .map(p => p.card)
-        .filter(card => card !== null && card !== PokerCard.Coffee && card !== PokerCard.Infinity) as number[];
+        .filter(card => 
+          card !== null && 
+          card !== PokerCard.Coffee && 
+          card !== PokerCard.Infinity
+        ) as number[];
 
       if (estimates.length === 0) return null;
-
       return estimates.reduce((a, b) => a + b, 0) / estimates.length;
     })
   );
@@ -45,16 +57,10 @@ export class PokerTableComponent implements OnInit, OnDestroy {
       this.appState.players$.pipe(
         distinctUntilChanged((prev, curr) => {
           if (prev.length !== curr.length) return false;
-
-          const prevPlayers = prev as Player[];
-          const currPlayers = curr as Player[];
-
-          return JSON.stringify(prevPlayers.map(p => p.card)) ===
-                 JSON.stringify(currPlayers.map(p => p.card));
+          return JSON.stringify(prev) === JSON.stringify(curr);
         })
       ).subscribe(players => {
-        // Check if all non-view-only players have submitted cards
-        const participatingPlayers = players.filter((p: Player) => !p.viewOnly && p.card !== null);
+        const participatingPlayers = players.filter(p => !p.viewOnly && p.card !== null);
         
         if (participatingPlayers.length > 1) {
           const firstCard = participatingPlayers[0].card;

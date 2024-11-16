@@ -20,9 +20,10 @@
         <div class="players-container">
             <ng-container *ngFor="let player of (players$ | async)">
                 <div class="player-card"
-                     [class.current-player]="player.name === (players$ | async)?.[0]?.name"
+                     [class.current-player]="player.name === (currentUser$ | async)?.name"
                      [class.view-only]="player.viewOnly">
-                    <div class="card-container" [class.has-card]="!!player.card">
+                    <div class="card-container" 
+                         [class.has-card]="player.card !== null">
                         <div class="card"
                              [class.revealed]="showCards$ | async">
                             <div class="card-content">
@@ -34,13 +35,16 @@
                                            player.card }}
                                     </span>
                                 </ng-container>
-                                <ng-container *ngIf="!(showCards$ | async)">
-                                    {{ player.card ? '?' : '' }}
+                                <ng-container *ngIf="!(showCards$ | async) && player.card !== null">
+                                    <span>?</span>
                                 </ng-container>
                             </div>
                         </div>
                     </div>
-                    <div class="player-name">{{ player.name }}</div>
+                    <div class="player-name" 
+                         [class.current-player]="player.name === (currentUser$ | async)?.name">
+                        {{ player.name }}
+                    </div>
                 </div>
             </ng-container>
         </div>
