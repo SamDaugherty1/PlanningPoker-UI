@@ -1,113 +1,107 @@
-import { inject, Injectable } from '@angular/core';
-import * as signalR from '@microsoft/signalr';
+import { Injectable } from '@angular/core';
+import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { environment } from '../../environments/environment';
+import { Player } from '../models/player';
+import { PokerCard } from '../models/poker-card';
+import { GameEventService } from './game-event.service';
 import { UserService } from './user.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PokerHubConnectionService {
-  private hubConnection!: signalR.HubConnection;
-  private connectionPromise: Promise<void> | null = null;
-  private readonly maxRetries = 3;
-  private readonly retryIntervalMs = 2000;
-  private userService = inject(UserService)
+  private hubConnection: HubConnection;
+  private isConnected = false;
 
-  constructor() {
-    this.startConnection();
-  }
-
-  private async startConnection() {
-    console.log('Initializing SignalR connection');
-
-    this.hubConnection = new signalR.HubConnectionBuilder()
+  constructor(
+    private gameEvents: GameEventService,
+    private userService: UserService
+  ) {
+    this.hubConnection = new HubConnectionBuilder()
       .withUrl(`${environment.apiUrl}/api/connect`)
-      .withAutomaticReconnect([0, 2000, 5000, 10000, 30000]) // Retry with increasing intervals up to 30 seconds
+      .withAutomaticReconnect()
       .build();
 
-    this.hubConnection.onclose(async () => {
-      console.log('Connection closed, attempting to reconnect...');
-      await this.connect();
-    });
-
-    this.hubConnection.onreconnected(() => {
-      console.log('Connection reestablished');
-    });
-
-    this.hubConnection.onreconnecting(() => {
-      console.log('Attempting to reconnect...');
-    });
-
-    this.hubConnection.on('connect', async () => {
-      console.log('Connected to SignalR hub. Joining game...');
-      await this.hubConnection.invoke('joinGame', this.userService.getCurrentUser()?.name, false);
-    });
-
-    await this.connect();
+    this.setupHubCallbacks();
   }
 
-  private async connect() {
-    if (this.connectionPromise) {
-      return this.connectionPromise;
-    }
-
-    this.connectionPromise = new Promise<void>(async (resolve, reject) => {
-      let retryCount = 0;
-
-      while (retryCount < this.maxRetries) {
-        try {
-          if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
-            resolve();
-            return;
-          }
-
-          if (this.hubConnection.state === signalR.HubConnectionState.Disconnected) {
-            await this.hubConnection.start();
-            console.log(`Connection established successfully - State: ${this.hubConnection.state}`);
-            resolve();
-            return;
-          }
-        } catch (error) {
-          console.error(`Connection attempt ${retryCount + 1} failed:`, error);
-          retryCount++;
-          
-          if (retryCount === this.maxRetries) {
-            reject(new Error(`Failed to connect after ${this.maxRetries} attempts`));
-            return;
-          }
-
-          await new Promise(r => setTimeout(r, this.retryIntervalMs));
-        }
-      }
-    }).finally(() => {
-      this.connectionPromise = null;
-    });
-
-    return this.connectionPromise;
-  }
-
-  public async invoke(method: string, ...args: any[]) {
-    if (this.hubConnection.state !== signalR.HubConnectionState.Connected) {
+  public async ensureConnection(): Promise<void> {
+    if (!this.isConnected) {
       try {
-        await this.connect();
+        await this.hubConnection.start();
+        this.isConnected = true;
+        console.log('Connected to SignalR Hub');
       } catch (error) {
-        throw new Error(`Failed to establish connection: ${error}`);
+        console.error('Error connecting to SignalR Hub:', error);
+        throw error;
       }
     }
+  }
 
+  public async joinGame(gameId: string, playerName: string, viewOnly = false): Promise<void> {
+    await this.ensureConnection();
     try {
-      return await this.hubConnection.invoke(method, ...args);
+      await this.hubConnection.invoke('JoinGame', gameId, playerName, viewOnly);
+      console.log('Joined game:', gameId);
     } catch (error) {
-      console.error(`Error invoking method ${method}:`, error);
+      console.error('Error joining game:', error);
       throw error;
     }
   }
 
-  public on(methodName: string, callback: (...args: any[]) => void) {
+  public async selectCard(card: PokerCard | null): Promise<void> {
+    await this.ensureConnection();
+    try {
+      await this.hubConnection.invoke('SelectCard', card);
+    } catch (error) {
+      console.error('Error selecting card:', error);
+      throw error;
+    }
+  }
+
+  public async showCards(): Promise<void> {
+    await this.ensureConnection();
+    try {
+      await this.hubConnection.invoke('ShowCards');
+    } catch (error) {
+      console.error('Error showing cards:', error);
+      throw error;
+    }
+  }
+
+  public async resetCards(): Promise<void> {
+    await this.ensureConnection();
+    try {
+      await this.hubConnection.invoke('ResetCards');
+    } catch (error) {
+      console.error('Error resetting cards:', error);
+      throw error;
+    }
+  }
+
+  public on(methodName: string, callback: (...args: any[]) => void): void {
     this.hubConnection.on(methodName, callback);
   }
 
-  public off(methodName: string, callback: (...args: any[]) => void) {
-    this.hubConnection.off(methodName, callback);
+  private setupHubCallbacks(): void {
+    this.hubConnection.on('UpdatePlayers', (players: Player[]) => {
+      this.gameEvents.emitUpdatePlayers(players);
+    });
+
+    this.hubConnection.on('ShowCards', () => {
+      this.gameEvents.emitShowCards();
+    });
+
+    this.hubConnection.on('ResetCards', () => {
+      this.gameEvents.emitResetCards();
+    });
+
+    this.hubConnection.onreconnected(() => {
+      console.log('Reconnected to SignalR Hub');
+      const currentUser = this.userService.getCurrentUser();
+      if (currentUser) {
+        this.joinGame(currentUser.gameId, currentUser.name,  currentUser.viewOnly).catch(console.error);
+      }
+    });
   }
 }

@@ -3,6 +3,8 @@ import { BehaviorSubject } from 'rxjs';
 import { Player } from '../models/player';
 import { UserService } from './user.service';
 import { PokerHubConnectionService } from './poker-hub-connection.service';
+import { PokerCard } from '../models/poker-card';
+import { GameEventService } from './game-event.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,126 +12,72 @@ import { PokerHubConnectionService } from './poker-hub-connection.service';
 export class AppStateService {
   private userService = inject(UserService);
   private hubConnection = inject(PokerHubConnectionService);
+  private gameEvents = inject(GameEventService);
 
   private _players = new BehaviorSubject<Player[]>([]);
   private _showCards = new BehaviorSubject<boolean>(false);
 
-  public players$ = this._players.asObservable();
-  public showCards$ = this._showCards.asObservable();
+  players$ = this._players.asObservable();
+  showCards$ = this._showCards.asObservable();
 
   constructor() {
-    // Set up SignalR handlers before initializing with current user
-    this.registerHandlers();
-    const currentUser = this.userService.getCurrentUser();
-    if (currentUser) {
-      this.hubConnection.invoke('joinGame', currentUser.name, false);
-    }
+    this.setupEventHandlers();
   }
 
-  private registerHandlers() {
-    this.hubConnection.on('updatePlayers', (players: Player[]) => {
-      console.log('Received players update:', players);
+  private setupEventHandlers() {
+    this.gameEvents.updatePlayers$.subscribe(players => {
       const currentUser = this.userService.getCurrentUser();
-      if (!currentUser) {
-        console.log('No current user, using server list');
-        this._players.next(players);
-        return;
-      }
+      if (!currentUser) return;
 
-      // Get server's version of current user
       const serverCurrentUser = players.find(p => p.name === currentUser.name);
-      // Get other players
       const otherPlayers = players.filter(p => p.name !== currentUser.name);
-      
-      // Update current user's card if it changed on server
+
       if (serverCurrentUser && serverCurrentUser.card !== currentUser.card) {
-        console.log('Updating current user card:', serverCurrentUser.card);
         this.userService.updateCard(serverCurrentUser.card);
-        currentUser.card = serverCurrentUser.card;
       }
 
-      // Update player list with current user first
-      console.log('Updating player list - Current User:', currentUser, 'Other Players:', otherPlayers);
       this._players.next([currentUser, ...otherPlayers]);
     });
 
-    this.hubConnection.on('updateShowCards', (showCards: boolean) => {
-      console.log('Received show cards update:', showCards);
-      this._showCards.next(showCards);
-      if (!showCards) {
-        // When hiding cards (reset), clear the current user's card
-        const currentUser = this.userService.getCurrentUser();
-        if (currentUser && currentUser.card !== null) {
-          this.userService.updateCard(null);
-          // Update player list to reflect card reset
-          const currentPlayers = this._players.value;
-          const otherPlayers = currentPlayers.filter(p => p.name !== currentUser.name);
-          this._players.next([{ ...currentUser, card: null }, ...otherPlayers]);
-        }
-      }
+    this.gameEvents.showCards$.subscribe(() => {
+      this._showCards.next(true);
     });
 
-    this.hubConnection.on('playerLeft', (playerName: string) => {
-      console.log('Player left:', playerName);
-      const currentPlayers = this._players.value;
+    this.gameEvents.resetCards$.subscribe(() => {
+      this._showCards.next(false);
       const currentUser = this.userService.getCurrentUser();
-      
-      if (currentUser && playerName === currentUser.name) {
-        // If we're leaving, clear the list
-        this._players.next([]);
-      } else {
-        // Remove the player who left
-        this._players.next(currentPlayers.filter(p => p.name !== playerName));
+      if (currentUser && currentUser.card !== null) {
+        this.userService.updateCard(null);
       }
-      console.log('Updated player list after leave:', this._players.value);
-    });
-
-    this.hubConnection.on('cardSelected', (playerName: string, card: number | null) => {
-      console.log('Card selected:', playerName, card);
-      const currentUser = this.userService.getCurrentUser();
-      const currentPlayers = this._players.value;
-      
-      if (currentUser && playerName === currentUser.name) {
-        // Update our card
-        this.userService.updateCard(card);
-        currentUser.card = card;
-        this._players.next([
-          currentUser,
-          ...currentPlayers.filter(p => p.name !== currentUser.name)
-        ]);
-      } else {
-        // Update other player's card
-        this._players.next(currentPlayers.map(p => 
-          p.name === playerName ? { ...p, card } : p
-        ));
-      }
-      console.log('Updated player list after card selection:', this._players.value);
     });
   }
 
-  public async showCards() {
-    console.log('Showing cards');
-    await this.hubConnection.invoke('showCards');
+  public async showCards(): Promise<void> {
+    await this.hubConnection.showCards();
   }
 
-  public async resetCards() {
-    console.log('Resetting cards');
-    await this.hubConnection.invoke('resetCards');
+  public async resetCards(): Promise<void> {
+    await this.hubConnection.resetCards();
   }
 
-  public async selectCard(card: number | null) {
-    console.log('Selecting card:', card);
+  public async selectCard(card: PokerCard | null): Promise<void> {
     const currentUser = this.userService.getCurrentUser();
-    if (currentUser) {
-      // Update local state immediately for better UX
-      currentUser.card = card;
-      const currentPlayers = this._players.value;
-      this._players.next([
-        currentUser,
-        ...currentPlayers.filter(p => p.name !== currentUser.name)
-      ]);
-      // Then notify server
-      await this.hubConnection.invoke('selectCard', card);
+    if (!currentUser) return;
+
+    try {
+      await this.hubConnection.selectCard(card);
+      this.userService.updateCard(card);
+
+      const otherPlayers = this._players.value.filter(p => p.name !== currentUser.name);
+      this._players.next([currentUser, ...otherPlayers]);
+    } catch (error) {
+      console.error('Error selecting card:', error);
     }
+  }
+
+  public getCurrentUser(): Player | null {
+    const user = this.userService.getCurrentUser();
+    if (!user) return null;
+    return {...user};
   }
 }

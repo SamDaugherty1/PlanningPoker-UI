@@ -311,35 +311,35 @@ app-stats-display {
     
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%) rotate($angle) translateY(-$adjustedRadius) rotate(-$angle);
+    transform: translate(-50%, -50%) rotate($angle) translateY(-$adjustedRadius);
   }
 }
 
 // Adjust spacing for different player counts
 .players-container {
   &:has(.player-card:nth-child(2):last-child) {
-    .player-card:nth-child(1) { transform: translate(-50%, -50%) translateY(-45%) rotate(0deg); }
-    .player-card:nth-child(2) { transform: translate(-50%, -50%) translateY(45%) rotate(180deg); }
+    .player-card:nth-child(1) { transform: translate(-50%, -50%) translateY(-45%); }
+    .player-card:nth-child(2) { transform: translate(-50%, -50%) translateY(45%); }
   }
 
   &:has(.player-card:nth-child(3):last-child) {
-    .player-card:nth-child(1) { transform: translate(-50%, -50%) rotate(0deg) translateY(-45%) rotate(0deg); }
-    .player-card:nth-child(2) { transform: translate(-50%, -50%) rotate(120deg) translateY(-45%) rotate(-120deg); }
-    .player-card:nth-child(3) { transform: translate(-50%, -50%) rotate(240deg) translateY(-45%) rotate(-240deg); }
+    .player-card:nth-child(1) { transform: translate(-50%, -50%) rotate(0deg) translateY(-45%); }
+    .player-card:nth-child(2) { transform: translate(-50%, -50%) rotate(120deg) translateY(-45%); }
+    .player-card:nth-child(3) { transform: translate(-50%, -50%) rotate(240deg) translateY(-45%); }
   }
 
   &:has(.player-card:nth-child(4):last-child) {
-    .player-card:nth-child(1) { transform: translate(-50%, -50%) rotate(0deg) translateY(-45%) rotate(0deg); }
-    .player-card:nth-child(2) { transform: translate(-50%, -50%) rotate(90deg) translateY(-45%) rotate(-90deg); }
-    .player-card:nth-child(3) { transform: translate(-50%, -50%) rotate(180deg) translateY(-45%) rotate(-180deg); }
-    .player-card:nth-child(4) { transform: translate(-50%, -50%) rotate(270deg) translateY(-45%) rotate(-270deg); }
+    .player-card:nth-child(1) { transform: translate(-50%, -50%) rotate(0deg) translateY(-45%); }
+    .player-card:nth-child(2) { transform: translate(-50%, -50%) rotate(90deg) translateY(-45%); }
+    .player-card:nth-child(3) { transform: translate(-50%, -50%) rotate(180deg) translateY(-45%); }
+    .player-card:nth-child(4) { transform: translate(-50%, -50%) rotate(270deg) translateY(-45%); }
   }
 
   &:has(.player-card:nth-child(5):last-child) {
-    .player-card:nth-child(1) { transform: translate(-50%, -50%) rotate(0deg) translateY(-45%) rotate(0deg); }
-    .player-card:nth-child(2) { transform: translate(-50%, -50%) rotate(72deg) translateY(-45%) rotate(-72deg); }
-    .player-card:nth-child(3) { transform: translate(-50%, -50%) rotate(144deg) translateY(-45%) rotate(-144deg); }
-    .player-card:nth-child(4) { transform: translate(-50%, -50%) rotate(216deg) translateY(-45%) rotate(-216deg); }
-    .player-card:nth-child(5) { transform: translate(-50%, -50%) rotate(288deg) translateY(-45%) rotate(-288deg); }
+    .player-card:nth-child(1) { transform: translate(-50%, -50%) rotate(0deg) translateY(-45%); }
+    .player-card:nth-child(2) { transform: translate(-50%, -50%) rotate(72deg) translateY(-45%); }
+    .player-card:nth-child(3) { transform: translate(-50%, -50%) rotate(144deg) translateY(-45%); }
+    .player-card:nth-child(4) { transform: translate(-50%, -50%) rotate(216deg) translateY(-45%); }
+    .player-card:nth-child(5) { transform: translate(-50%, -50%) rotate(288deg) translateY(-45%); }
   }
 }

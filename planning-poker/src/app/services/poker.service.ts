@@ -1,16 +1,17 @@
-import { inject, Injectable } from '@angular/core';
-import * as signalR from '@microsoft/signalr';
+import { Injectable } from '@angular/core';
 import { PokerHubConnectionService } from './poker-hub-connection.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PokerService {
+  constructor(private pokerHubConnection: PokerHubConnectionService) {}
 
-  private readonly pokerHubConnection = inject(PokerHubConnectionService);
-  constructor() { }
+  async showCards(): Promise<void> {
+    await this.pokerHubConnection.showCards();
+  }
 
-  public async showCards() {
-    return await this.pokerHubConnection.invoke('showCards');
-  }  
+  async resetCards(): Promise<void> {
+    await this.pokerHubConnection.resetCards();
+  }
 }

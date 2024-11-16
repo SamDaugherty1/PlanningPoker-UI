@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { PokerCard } from '../../models/poker-card';
 import { AppStateService } from '../../services/app-state.service';
 import { UserService } from '../../services/user.service';
-import { Subscription, combineLatest } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { HelpModalComponent } from '../help-modal/help-modal.component';
 
 interface CardOption {
@@ -28,7 +28,6 @@ export class CardDeckComponent implements OnInit, OnDestroy {
   showHelpModal = false;
 
   cards: CardOption[] = [
-    { value: PokerCard.Zero, selected: false },
     { value: PokerCard.One, selected: false },
     { value: PokerCard.Two, selected: false },
     { value: PokerCard.Three, selected: false },
@@ -36,27 +35,18 @@ export class CardDeckComponent implements OnInit, OnDestroy {
     { value: PokerCard.Eight, selected: false },
     { value: PokerCard.Thirteen, selected: false },
     { value: PokerCard.TwentyOne, selected: false },
-    { value: PokerCard.Infinity, selected: false },
+    { value: PokerCard.ThirtyFour, selected: false },
     { value: PokerCard.Coffee, selected: false },
+    { value: PokerCard.Infinity, selected: false }
   ];
 
   ngOnInit() {
-    // Subscribe to both current user and show cards state
+    // Update card selection when user changes
     this.subscriptions.add(
-      combineLatest([
-        this.userService.currentUser$,
-        this.appState.showCards$
-      ]).subscribe(([player, showCards]) => {
-        // Reset selection when cards are shown
-        if (showCards) {
-          this.cards.forEach(card => card.selected = false);
-        }
-        // Update selected card based on current user's card
-        else if (player) {
-          this.cards.forEach(card => {
-            card.selected = card.value === player.card;
-          });
-        }
+      this.userService.currentUser$.subscribe(user => {
+        this.cards.forEach(card => {
+          card.selected = card.value === user?.card;
+        });
       })
     );
   }
@@ -65,18 +55,25 @@ export class CardDeckComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  selectCard(selectedCard: CardOption) {
+  async selectCard(selectedCard: CardOption) {
     const currentUser = this.userService.getCurrentUser();
-    if (!currentUser || selectedCard.selected) return;
+    if (!currentUser || currentUser.viewOnly) return;
 
-    // Update selection in UI
-    this.cards.forEach(card => {
-      card.selected = card === selectedCard;
-    });
+    // If clicking the currently selected card, deselect it
+    if (currentUser.card === selectedCard.value) {
+      this.cards.forEach(card => card.selected = false);
+      this.userService.updateCard(null);
+      await this.appState.selectCard(null);
+    } else {
+      // Update selection in UI
+      this.cards.forEach(card => {
+        card.selected = card === selectedCard;
+      });
 
-    // Update user's card and notify server
-    this.userService.updateCard(selectedCard.value);
-    this.appState.selectCard(selectedCard.value);
+      // Update user's card and notify server
+      this.userService.updateCard(selectedCard.value);
+      await this.appState.selectCard(selectedCard.value);
+    }
   }
 
   toggleHelpModal() {

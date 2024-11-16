@@ -21,6 +21,48 @@ header {
     font-size: 1.5rem;
   }
 
+  .game-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .game-id {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      background-color: rgba(255,255,255,0.1);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+
+      .id-value {
+        font-family: monospace;
+        font-weight: 500;
+      }
+
+      .copy-button {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+
+        &:hover {
+          opacity: 1;
+        }
+
+        &.copied {
+          color: #2ecc71;
+        }
+      }
+    }
+  }
+
   .user-info {
     font-size: 1rem;
     font-weight: 500;
