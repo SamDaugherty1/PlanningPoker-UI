@@ -1,52 +1,142 @@
+// Modern color variables
+$table-color: #2c7a51;
+$table-border: #1e5837;
+$card-shadow: rgba(0, 0, 0, 0.2);
+$name-bg: rgba(0, 0, 0, 0.7);
+$current-player: #2196f3;
+$reset-color: #f44336;
+$empty-spot: rgba(0, 0, 0, 0.3);
+
 .overall-container {
-    margin: auto;
-    width: 75%;
-    background-color: red;
+    width: 100%;
+    height: 100%;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    gap: 1.5rem;
+}
+
+.table-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    animation: fadeIn 0.3s ease-out;
+
+    .reset-button {
+        padding: 0.75rem 1.5rem;
+        background: rgba($reset-color, 0.9);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px $card-shadow;
+        min-width: 120px;
+
+        &:hover {
+            background: $reset-color;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px $card-shadow;
+        }
+    }
 }
 
 .table-container {
     position: relative;
     width: 400px;
     height: 400px;
-    margin: 50px auto;
-  }
+    margin: 0 auto;
+
+    .action-button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2;
+        padding: 0.75rem 1.5rem;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 8px;
+        color: #333;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px $card-shadow;
+        min-width: 120px;
+
+        &:hover {
+            background: white;
+            transform: translate(-50%, -50%) translateY(-2px);
+            box-shadow: 0 4px 8px $card-shadow;
+        }
+    }
+}
   
-  .table {
+.table {
     width: 200px;
     height: 200px;
-    background-color: green;
+    background-color: $table-color;
+    border: 8px solid $table-border;
     border-radius: 50%;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-  }
+    box-shadow: 0 8px 16px $card-shadow;
+}
   
-  .player {
+.player {
     position: absolute;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    width: 60px;
-    height: 80px;
-    background-color: gray;
-    border: 2px solid black;
-    border-radius: 15%;
-    font-size: 14px;
-    text-align: center;
     transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+    z-index: 1;
+}
 
-    &.selected {
-      background-color: white;
-    }
-  }
-  
-  .player-info {
+.player-container {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    height: 100%;
-    width: 100%;
-  }
-  
+    gap: 0.5rem;
+
+    &.empty {
+        opacity: 0.5;
+    }
+}
+
+.player-name {
+    background: $name-bg;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
+    
+    &.current-player {
+        background: $current-player;
+        font-weight: 500;
+        box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+    }
+
+    &.empty-spot {
+        background: $empty-spot;
+        font-size: 0.75rem;
+        opacity: 0.7;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -10,13 +10,14 @@ import { Component, ContentChild, EventEmitter, Input, Output } from '@angular/c
 export class CardComponent {
   @Input() highlight = false;
   @Input() hidden = false;
-
-
+  @Input() placeholder = false;
+  @Input() hasValue = false; // New input to indicate if card has a value
   @Input() value?: number | null;
   @Output() onSelected = new EventEmitter<number | null>();
 
   select() {
-    // this.selected = !this.selected;
-    this.onSelected.emit(this.value)
+    if (!this.placeholder) {
+      this.onSelected.emit(this.value);
+    }
   }
 }

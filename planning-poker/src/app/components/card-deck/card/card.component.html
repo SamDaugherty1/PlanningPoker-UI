@@ -1,3 +1,8 @@
-<div class="card-container" [class.hidden]="hidden" [class.highlight]="highlight" (click)="select()">
+<div class="card" 
+    [class.highlight]="highlight" 
+    [class.hidden]="hidden"
+    [class.placeholder]="placeholder"
+    [class.has-value]="hasValue && placeholder"
+    (click)="select()">
     <ng-content></ng-content>
 </div>

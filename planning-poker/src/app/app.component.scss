@@ -1,0 +1,22 @@
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 2rem;
+    gap: 2rem;
+    background: #f5f5f5;
+}
+
+.poker-table {
+    flex: 1;
+    min-height: 500px;
+    display: block;
+}
+
+.card-deck {
+    display: block;
+    padding: 1rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
