@@ -52,28 +52,7 @@ export class PokerTableComponent implements OnInit, OnDestroy {
   );
 
   ngOnInit() {
-    // Watch for all cards submitted
-    this.subscriptions.add(
-      this.players$.pipe(
-        distinctUntilChanged((prev, curr) => {
-          if (prev.length !== curr.length) return false;
-          return JSON.stringify(prev) === JSON.stringify(curr);
-        })
-      ).subscribe(players => {
-        const participatingPlayers = players.filter(p => !p.viewOnly && p.card !== null);
-        
-        if (participatingPlayers.length > 1) {
-          const firstCard = participatingPlayers[0].card;
-          const allSame = participatingPlayers.every(p => p.card === firstCard);
-
-          if (allSame) {
-            setTimeout(() => {
-              this.appState.showCards();
-            }, 500);
-          }
-        }
-      })
-    );
+    // No need to watch for matching cards anymore
   }
 
   ngOnDestroy() {

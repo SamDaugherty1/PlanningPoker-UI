@@ -1,17 +1,17 @@
-<div class="layout">
-    <header class="header">
-        <div class="header-content">
-            <h1>Agile Planning Poker</h1>
+<div class="app-container">
+    <header>
+        <h1>Planning Poker</h1>
+        <div class="user-info" *ngIf="currentUser">
+            {{ currentUser.name }}
         </div>
     </header>
-
-    <main class="main-content">
+    <main>
         <ng-content></ng-content>
     </main>
-
-    <footer class="footer">
+    <footer>
         <div class="footer-content">
-            <p>&copy; {{ currentYear }} Agile Planning Poker. Authored by Sam Daugherty. All rights reserved.</p>
+            <app-card-deck></app-card-deck>
+            <p>&copy; {{ currentYear }} Agile Planning Poker. All rights reserved. Made by Sam Daugherty</p>
         </div>
     </footer>
 </div>
