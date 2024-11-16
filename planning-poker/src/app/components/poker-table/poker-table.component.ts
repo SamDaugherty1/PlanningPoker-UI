@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CardComponent } from '../card-deck/card/card.component';
+import { UserService } from '../../services/user.service';
+import { AppStateService } from '../../services/app-state.service';
 
 @Component({
   selector: 'app-poker-table',
@@ -10,20 +12,17 @@ import { CardComponent } from '../card-deck/card/card.component';
   templateUrl: './poker-table.component.html',
   styleUrl: './poker-table.component.scss'
 })
-export class PokerTableComponent {
+export class PokerTableComponent implements OnInit{
+
+  private readonly appState = inject(AppStateService);
+
+  players$ = this.appState.allPlayers$;
+
+  ngOnInit(): void {
+    
+  }
 
   showCards = false;
-
-  players = [
-    { name: 'Alice', selected:false },
-    { name: 'Bob', selected:false },
-    { name: 'Charlie', selected:false },
-    { name: 'David', selected:false },
-    { name: 'Eva', selected:false },
-    { name: 'Frank', selected:false },
-    { name: 'Grace', selected:false },
-    { name: 'Hank', selected:false }
-  ];
 
   getPlayerPosition(index: number, totalPlayers: number) {
     const angle = (360 / totalPlayers) * index; // Angle for each player

@@ -9,9 +9,12 @@
             <span>Hide</span>
         }
     </button>
-    <div *ngFor="let player of players; let i = index" class="player"  [ngStyle]="getPlayerPosition(i, players.length)">
+
+
+
+    <div *ngFor="let player of (players$ | async); let i = index" class="player"  [ngStyle]="getPlayerPosition(i + 1, (players$ | async)!.length)">
         <app-card [hidden]="!showCards">
-            <span >{{ player.name }} {{player.selected}}</span>
+            <span >{{ player.card }}</span>
         </app-card>
     </div>
 </div>
