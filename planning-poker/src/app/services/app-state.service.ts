@@ -20,35 +20,37 @@ export class AppStateService {
   constructor() {
     // Set up SignalR handlers before initializing with current user
     this.registerHandlers();
+    const currentUser = this.userService.getCurrentUser();
+    if (currentUser) {
+      this.hubConnection.invoke('joinGame', currentUser.name, false);
+    }
   }
 
   private registerHandlers() {
     this.hubConnection.on('updatePlayers', (players: Player[]) => {
       console.log('Received players update:', players);
       const currentUser = this.userService.getCurrentUser();
-      if (currentUser) {
-        // Find current user in server list
-        const serverCurrentUser = players.find(p => p.name === currentUser.name);
-        // Get other players
-        const otherPlayers = players.filter(p => p.name !== currentUser.name);
-        
-        if (serverCurrentUser) {
-          // Update current user's card if it changed on server
-          if (serverCurrentUser.card !== currentUser.card) {
-            this.userService.updateCard(serverCurrentUser.card);
-            currentUser.card = serverCurrentUser.card;
-          }
-          // Update player list with current user first
-          this._players.next([currentUser, ...otherPlayers]);
-        } else {
-          // Current user not in server list, add them first
-          this._players.next([currentUser, ...otherPlayers]);
-        }
-      } else {
-        // No current user, just use server list
+      if (!currentUser) {
+        console.log('No current user, using server list');
         this._players.next(players);
+        return;
       }
-      console.log('Updated player list:', this._players.value);
+
+      // Get server's version of current user
+      const serverCurrentUser = players.find(p => p.name === currentUser.name);
+      // Get other players
+      const otherPlayers = players.filter(p => p.name !== currentUser.name);
+      
+      // Update current user's card if it changed on server
+      if (serverCurrentUser && serverCurrentUser.card !== currentUser.card) {
+        console.log('Updating current user card:', serverCurrentUser.card);
+        this.userService.updateCard(serverCurrentUser.card);
+        currentUser.card = serverCurrentUser.card;
+      }
+
+      // Update player list with current user first
+      console.log('Updating player list - Current User:', currentUser, 'Other Players:', otherPlayers);
+      this._players.next([currentUser, ...otherPlayers]);
     });
 
     this.hubConnection.on('updateShowCards', (showCards: boolean) => {
@@ -65,25 +67,6 @@ export class AppStateService {
           this._players.next([{ ...currentUser, card: null }, ...otherPlayers]);
         }
       }
-    });
-
-    this.hubConnection.on('playerJoined', (player: Player) => {
-      console.log('Player joined:', player);
-      const currentUser = this.userService.getCurrentUser();
-      const currentPlayers = this._players.value;
-      
-      if (currentUser && player.name === currentUser.name) {
-        // If it's us joining, update our card if needed
-        if (player.card !== currentUser.card) {
-          this.userService.updateCard(player.card);
-          currentUser.card = player.card;
-        }
-        this._players.next([currentUser, ...currentPlayers.filter(p => p.name !== currentUser.name)]);
-      } else {
-        // Add new player to the list
-        this._players.next([...currentPlayers, player]);
-      }
-      console.log('Updated player list after join:', this._players.value);
     });
 
     this.hubConnection.on('playerLeft', (playerName: string) => {

@@ -3,8 +3,8 @@
         <div class="button-group">
             <button (click)="showCards()"
                     class="control-button"
-                    [disabled]="!(allCardsSubmitted$ | async)"
-                    [class.disabled]="!(allCardsSubmitted$ | async)">
+                    [disabled]="!(canShowCards$ | async) || (showCards$ | async)"
+                    [class.disabled]="!(canShowCards$ | async) || (showCards$ | async)">
                 Show Cards
             </button>
             <button (click)="resetCards()"

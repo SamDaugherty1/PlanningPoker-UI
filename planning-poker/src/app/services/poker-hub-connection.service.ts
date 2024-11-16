@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { environment } from '../../environments/environment';
+import { UserService } from './user.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,6 +11,7 @@ export class PokerHubConnectionService {
   private connectionPromise: Promise<void> | null = null;
   private readonly maxRetries = 3;
   private readonly retryIntervalMs = 2000;
+  private userService = inject(UserService)
 
   constructor() {
     this.startConnection();
@@ -36,8 +38,9 @@ export class PokerHubConnectionService {
       console.log('Attempting to reconnect...');
     });
 
-    this.hubConnection.on('connect', () => {
-      console.log('Connected to SignalR hub');
+    this.hubConnection.on('connect', async () => {
+      console.log('Connected to SignalR hub. Joining game...');
+      await this.hubConnection.invoke('joinGame', this.userService.getCurrentUser()?.name, false);
     });
 
     await this.connect();

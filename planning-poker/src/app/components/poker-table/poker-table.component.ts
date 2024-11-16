@@ -24,7 +24,7 @@ export class PokerTableComponent implements OnInit, OnDestroy {
   currentUser$ = this.userService.currentUser$;
   
   // Enable Show Cards button when at least one non-view-only player has selected a card
-  allCardsSubmitted$ = this.appState.players$.pipe(
+  canShowCards$ = this.players$.pipe(
     map(players => {
       const nonViewOnlyPlayers = players.filter(p => !p.viewOnly);
       return nonViewOnlyPlayers.length > 0 && 
@@ -35,7 +35,7 @@ export class PokerTableComponent implements OnInit, OnDestroy {
   infinity = PokerCard.Infinity;
   coffee = PokerCard.Coffee;
 
-  averageEstimate$ = this.appState.players$.pipe(
+  averageEstimate$ = this.players$.pipe(
     map(players => {
       const estimates = players
         .filter(p => !p.viewOnly && p.card !== null)
@@ -54,7 +54,7 @@ export class PokerTableComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // Watch for all cards submitted
     this.subscriptions.add(
-      this.appState.players$.pipe(
+      this.players$.pipe(
         distinctUntilChanged((prev, curr) => {
           if (prev.length !== curr.length) return false;
           return JSON.stringify(prev) === JSON.stringify(curr);
