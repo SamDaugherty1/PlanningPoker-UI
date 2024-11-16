@@ -69,4 +69,39 @@
             box-shadow: none;
         }
     }
+
+    // Style for special symbols
+    .infinity {
+        font-size: 2rem;
+        font-weight: normal;
+        line-height: 1;
+    }
+
+    .coffee {
+        font-size: 1.75rem;
+        font-weight: normal;
+        line-height: 1;
+    }
+
+    .view-only {
+        position: relative;
+        display: inline-block;
+
+        .view-only-icon {
+            font-size: 1.5rem;
+            line-height: 1;
+            opacity: 0.5;
+        }
+
+        .view-only-slash {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.7);
+            line-height: 1;
+        }
+    }
 }

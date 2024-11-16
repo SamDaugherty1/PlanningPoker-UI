@@ -1,112 +1,69 @@
-import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, combineLatest, map } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import { Player } from '../models/player';
 import { UserService } from './user.service';
-import { PokerCard } from '../models/poker-card';
-import { PokerService } from './poker.service';
+import { PokerHubConnectionService } from './poker-hub-connection.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AppStateService {
-  constructor() { }
-
   private userService = inject(UserService);
-  private pokerService = inject(PokerService);
-  
-  public currentPlayer$ = new BehaviorSubject<Player>({
-    name: 'Sam'
-  });
+  private hubConnection = inject(PokerHubConnectionService);
 
-  private readonly _showCards = new BehaviorSubject<boolean>(false);
+  private _players = new BehaviorSubject<Player[]>([]);
+  private _showCards = new BehaviorSubject<boolean>(false);
+
+  public players$ = this._players.asObservable();
   public showCards$ = this._showCards.asObservable();
 
-  private readonly _selectedCard = new BehaviorSubject<PokerCard | null>(null);
-  public selectedCard$ = this._selectedCard.asObservable();
-
-  private readonly _players = new BehaviorSubject<Player[]>([
-    {
-      name:'Bob',
-      card: PokerCard.Five
-    },
-    {
-      name: 'Susan',
-      card: PokerCard.Coffee
-    },
-    {
-      name: 'Jim',
-      card: PokerCard.Thirteen
+  constructor() {
+    // Initialize with current user
+    const currentUser = this.userService.getCurrentUser();
+    if (currentUser) {
+      this._players.next([currentUser]);
     }
-  ]);
 
-  public allPlayers$ = combineLatest([this.currentPlayer$, this._players]).pipe(
-    map(([player, players]) => {
-      return [player, ...players];
-    })
-  );
-
-  // Helper function to get random card for testing
-  private getRandomCard(): PokerCard {
-    const cards = [
-      PokerCard.Zero,
-      PokerCard.One,
-      PokerCard.Two,
-      PokerCard.Three,
-      PokerCard.Five,
-      PokerCard.Eight,
-      PokerCard.Thirteen,
-      PokerCard.TwentyOne,
-      PokerCard.Coffee,
-      PokerCard.Infinity
-    ];
-    return cards[Math.floor(Math.random() * cards.length)];
+    // Set up SignalR handlers
+    this.registerHandlers();
   }
 
-  selectCard(card: PokerCard | null) {
-    this._selectedCard.next(card);
-    this.currentPlayer$.next({
-      ...this.currentPlayer$.value,
-      card: card
+  private registerHandlers() {
+    this.hubConnection.on('updatePlayers', (players: Player[]) => {
+      this._players.next(players);
+    });
+
+    this.hubConnection.on('updateShowCards', (showCards: boolean) => {
+      this._showCards.next(showCards);
+    });
+
+    this.hubConnection.on('playerJoined', (player: Player) => {
+      const currentPlayers = this._players.value;
+      this._players.next([...currentPlayers, player]);
+    });
+
+    this.hubConnection.on('playerLeft', (playerName: string) => {
+      const currentPlayers = this._players.value;
+      this._players.next(currentPlayers.filter(p => p.name !== playerName));
+    });
+
+    this.hubConnection.on('cardSelected', (playerName: string, card: number | null) => {
+      const currentPlayers = this._players.value;
+      this._players.next(currentPlayers.map(p => 
+        p.name === playerName ? { ...p, card } : p
+      ));
     });
   }
 
-  toggleCards() {
-    this._showCards.next(!this._showCards.value);
+  public async showCards() {
+    await this.hubConnection.invoke('showCards');
   }
 
-  resetTable() {
-    // First, hide the cards to prevent any flashing of old values
-    this._showCards.next(false);
-
-    // Reset current player's card and selected card state
-    this._selectedCard.next(null);
-    this.currentPlayer$.next({
-      ...this.currentPlayer$.value,
-      card: null
-    });
-
-    // Small delay to ensure UI updates before resetting cards
-    setTimeout(() => {
-      // TODO: Remove this section after testing - it's only for simulating other players selecting cards
-      const resetPlayers = this._players.value.map(player => ({
-        ...player,
-        card: null // First clear all cards
-      }));
-      this._players.next(resetPlayers);
-
-      // Then, after a small delay, assign new random cards
-      setTimeout(() => {
-        const playersWithRandomCards = this._players.value.map(player => ({
-          ...player,
-          // 70% chance to assign a random card, 30% chance to have no card
-          card: Math.random() < 0.7 ? this.getRandomCard() : null
-        }));
-        this._players.next(playersWithRandomCards);
-      }, 100);
-    }, 0);
+  public async resetCards() {
+    await this.hubConnection.invoke('resetCards');
   }
 
-  showAllCards() {
-    this.pokerService.showCards();
+  public async selectCard(card: number | null) {
+    await this.hubConnection.invoke('selectCard', card);
   }
 }

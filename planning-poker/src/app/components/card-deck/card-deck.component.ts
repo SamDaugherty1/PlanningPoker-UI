@@ -1,57 +1,85 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { PokerCard } from '../../models/poker-card';
 import { CommonModule } from '@angular/common';
-import { CardComponent } from './card/card.component';
+import { PokerCard } from '../../models/poker-card';
 import { AppStateService } from '../../services/app-state.service';
-import { Subscription } from 'rxjs';
+import { UserService } from '../../services/user.service';
+import { Subscription, combineLatest } from 'rxjs';
+import { HelpModalComponent } from '../help-modal/help-modal.component';
+
+interface CardOption {
+  value: PokerCard;
+  selected: boolean;
+}
 
 @Component({
   selector: 'app-card-deck',
   standalone: true,
-  imports: [CommonModule, CardComponent],
+  imports: [CommonModule, HelpModalComponent],
   templateUrl: './card-deck.component.html',
-  styleUrl: './card-deck.component.scss'
+  styleUrls: ['./card-deck.component.scss']
 })
 export class CardDeckComponent implements OnInit, OnDestroy {
-  cards = [
-    {text: PokerCard.One, value: PokerCard.One, selected: false},
-    {text: PokerCard.Two,value: PokerCard.Two, selected: false},
-    {text: PokerCard.Three,value: PokerCard.Three, selected: false},
-    {text: PokerCard.Five,value: PokerCard.Five, selected: false},
-    {text: PokerCard.Eight,value: PokerCard.Eight, selected: false},
-    {text: PokerCard.Thirteen,value: PokerCard.Thirteen, selected: false},
-    {text: 'infintiy', value: PokerCard.Infinity, selected: false, class: 'infinity'}
+  private appState = inject(AppStateService);
+  private userService = inject(UserService);
+  private subscriptions = new Subscription();
+
+  infinity = PokerCard.Infinity;
+  coffee = PokerCard.Coffee;
+  showHelpModal = false;
+
+  cards: CardOption[] = [
+    { value: PokerCard.Zero, selected: false },
+    { value: PokerCard.One, selected: false },
+    { value: PokerCard.Two, selected: false },
+    { value: PokerCard.Three, selected: false },
+    { value: PokerCard.Five, selected: false },
+    { value: PokerCard.Eight, selected: false },
+    { value: PokerCard.Thirteen, selected: false },
+    { value: PokerCard.TwentyOne, selected: false },
+    { value: PokerCard.Infinity, selected: false },
+    { value: PokerCard.Coffee, selected: false },
   ];
 
-  private readonly appState = inject(AppStateService);
-  private subscription: Subscription = new Subscription();
-
   ngOnInit() {
-    // Subscribe to current player changes to sync card selection state
-    this.subscription.add(
-      this.appState.currentPlayer$.subscribe(player => {
-        this.cards.forEach(card => {
-          card.selected = card.value === player.card;
-        });
+    // Subscribe to both current user and show cards state
+    this.subscriptions.add(
+      combineLatest([
+        this.userService.currentUser$,
+        this.appState.showCards$
+      ]).subscribe(([player, showCards]) => {
+        // Reset selection when cards are shown
+        if (showCards) {
+          this.cards.forEach(card => card.selected = false);
+        }
+        // Update selected card based on current user's card
+        else if (player) {
+          this.cards.forEach(card => {
+            card.selected = card.value === player.card;
+          });
+        }
       })
     );
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
-  onSelected(value: number) {
-    const card = this.cards.find(c => c.value === value);
-    if (card) {
-      // Toggle the selected state
-      card.selected = !card.selected;
-      // Update the app state
-      this.appState.selectCard(card.selected ? value : null);
-    }
+  selectCard(selectedCard: CardOption) {
+    const currentUser = this.userService.getCurrentUser();
+    if (!currentUser || selectedCard.selected) return;
+
+    // Update selection in UI
+    this.cards.forEach(card => {
+      card.selected = card === selectedCard;
+    });
+
+    // Update user's card and notify server
+    this.userService.updateCard(selectedCard.value);
+    this.appState.selectCard(selectedCard.value);
   }
 
-  resetCards() {
-    this.cards.forEach(card => card.selected = false);
+  toggleHelpModal() {
+    this.showHelpModal = !this.showHelpModal;
   }
 }

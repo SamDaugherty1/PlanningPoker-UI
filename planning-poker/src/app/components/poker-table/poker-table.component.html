@@ -1,59 +1,48 @@
-<div class="overall-container">
-    <div class="table-actions" *ngIf="showCards$ | async">
-        <button (click)="resetTable()" class="reset-button">
-            <span>New Round</span>
-        </button>
+<div class="poker-table-container">
+    <div class="controls">
+        <div class="button-group">
+            <button (click)="showCards()"
+                    class="control-button"
+                    [disabled]="!(allCardsSubmitted$ | async)"
+                    [class.disabled]="!(allCardsSubmitted$ | async)">
+                Show Cards
+            </button>
+            <button (click)="resetCards()"
+                    class="control-button"
+                    [disabled]="!(showCards$ | async)"
+                    [class.disabled]="!(showCards$ | async)">
+                Reset
+            </button>
+        </div>
     </div>
 
-    <div class="table-container">
-        <div class="table"></div>
-
-        <ng-container *ngIf="showCards$ | async">
-            <app-stats-display 
-                *ngIf="average$ | async"
-                [average]="average$ | async"
-                [participation]="participation$ | async">
-            </app-stats-display>
-        </ng-container>
-
-        <button (click)="toggleCards()" class="action-button">
-            <ng-container *ngIf="(showCards$ | async); else showCardsButton">
-                <span>Hide Cards</span>
-            </ng-container>
-            <ng-template #showCardsButton>
-                <span>Show Cards</span>
-            </ng-template>
-        </button>
-
-        <ng-container *ngIf="(players$ | async) as players">
-            <div *ngFor="let player of players; let i = index" 
-                class="player"  
-                [ngStyle]="getPlayerPosition(i, players.length)">
-                <div class="player-container">
-                    <ng-container *ngIf="(showCards$ | async) as showCards">
-                        <app-card 
-                            [hidden]="false" 
-                            [highlight]="!!player.card && showCards" 
-                            [placeholder]="!showCards"
-                            [hasValue]="!!player.card">
-                            <span>{{ player.card || '?' }}</span>
-                        </app-card>
-                    </ng-container>
-                    <ng-container *ngIf="!(showCards$ | async)">
-                        <app-card 
-                            [hidden]="false" 
-                            [highlight]="false" 
-                            [placeholder]="true"
-                            [hasValue]="!!player.card">
-                            <span>?</span>
-                        </app-card>
-                    </ng-container>
-                    <div class="player-name" 
-                        [class.current-player]="player.name === players[0].name">
-                        {{ player.name }}
+    <div class="table">
+        <div class="players-container">
+            <ng-container *ngFor="let player of (players$ | async)">
+                <div class="player-card"
+                     [class.current-player]="player.name === (players$ | async)?.[0]?.name"
+                     [class.view-only]="player.viewOnly">
+                    <div class="card-container" [class.has-card]="!!player.card">
+                        <div class="card"
+                             [class.revealed]="showCards$ | async">
+                            <div class="card-content">
+                                <ng-container *ngIf="showCards$ | async">
+                                    <span [class.infinity]="player.card === infinity"
+                                          [class.coffee]="player.card === coffee">
+                                        {{ player.card === infinity ? '∞' :
+                                           player.card === coffee ? '☕' :
+                                           player.card }}
+                                    </span>
+                                </ng-container>
+                                <ng-container *ngIf="!(showCards$ | async)">
+                                    {{ player.card ? '?' : '' }}
+                                </ng-container>
+                            </div>
+                        </div>
                     </div>
+                    <div class="player-name">{{ player.name }}</div>
                 </div>
-            </div>
-        </ng-container>
+            </ng-container>
+        </div>
     </div>
 </div>

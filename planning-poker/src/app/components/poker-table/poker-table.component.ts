@@ -1,78 +1,84 @@
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
-import { CardComponent } from '../card-deck/card/card.component';
-import { UserService } from '../../services/user.service';
+import { CardDeckComponent } from '../card-deck/card-deck.component';
 import { AppStateService } from '../../services/app-state.service';
-import { map } from 'rxjs';
 import { PokerCard } from '../../models/poker-card';
-import { StatsDisplayComponent } from '../stats-display/stats-display.component';
+import { Player } from '../../models/player';
+import { Subscription, map, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'app-poker-table',
   standalone: true,
-  imports: [CommonModule, CardComponent, StatsDisplayComponent],
+  imports: [CommonModule, CardDeckComponent],
   templateUrl: './poker-table.component.html',
   styleUrls: ['./poker-table.component.scss']
 })
-export class PokerTableComponent implements OnInit {
-  private readonly appState = inject(AppStateService);
-  players$ = this.appState.allPlayers$;
+export class PokerTableComponent implements OnInit, OnDestroy {
+  private appState = inject(AppStateService);
+  private subscriptions = new Subscription();
+
+  players$ = this.appState.players$;
   showCards$ = this.appState.showCards$;
+  allCardsSubmitted$ = this.appState.players$.pipe(
+    map(players => players.some((p: Player) => !p.viewOnly && p.card !== null))
+  );
 
-  // Calculate average of valid card values
-  average$ = this.players$.pipe(
+  infinity = PokerCard.Infinity;
+  coffee = PokerCard.Coffee;
+
+  averageEstimate$ = this.appState.players$.pipe(
     map(players => {
-      const validCards = players
+      const estimates = players
+        .filter((p: Player) => !p.viewOnly)
         .map(p => p.card)
-        .filter(card => 
-          card !== undefined && 
-          card !== null && 
-          card !== PokerCard.Coffee && 
-          card !== PokerCard.Infinity
-        );
+        .filter(card => card !== null && card !== PokerCard.Coffee && card !== PokerCard.Infinity) as number[];
 
-      if (validCards.length === 0) return null;
+      if (estimates.length === 0) return null;
 
-      const sum = validCards.reduce((acc, curr) => acc + curr, 0);
-      return (sum / validCards.length).toFixed(1);
+      return estimates.reduce((a, b) => a + b, 0) / estimates.length;
     })
   );
 
-  // Calculate percentage of players who have selected cards
-  participation$ = this.players$.pipe(
-    map(players => {
-      const totalPlayers = players.length;
-      const playersWithCards = players.filter(p => p.card !== undefined && p.card !== null).length;
-      return Math.round((playersWithCards / totalPlayers) * 100);
-    })
-  );
+  ngOnInit() {
+    // Watch for all cards submitted
+    this.subscriptions.add(
+      this.appState.players$.pipe(
+        distinctUntilChanged((prev, curr) => {
+          if (prev.length !== curr.length) return false;
 
-  toggleCards() {
-    this.appState.toggleCards();
+          const prevPlayers = prev as Player[];
+          const currPlayers = curr as Player[];
+
+          return JSON.stringify(prevPlayers.map(p => p.card)) ===
+                 JSON.stringify(currPlayers.map(p => p.card));
+        })
+      ).subscribe(players => {
+        // Check if all non-view-only players have submitted cards
+        const participatingPlayers = players.filter((p: Player) => !p.viewOnly && p.card !== null);
+        
+        if (participatingPlayers.length > 1) {
+          const firstCard = participatingPlayers[0].card;
+          const allSame = participatingPlayers.every(p => p.card === firstCard);
+
+          if (allSame) {
+            setTimeout(() => {
+              this.appState.showCards();
+            }, 500);
+          }
+        }
+      })
+    );
   }
 
-  resetTable() {
-    this.appState.resetTable();
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
-  ngOnInit(): void {}
+  showCards() {
+    this.appState.showCards();
+  }
 
-  getPlayerPosition(index: number, totalPlayers: number) {
-    // Start from bottom (90 degrees) and distribute players clockwise
-    // In mathematics, 90 degrees points upward, but in our coordinate system it points downward
-    const startAngle = 90;
-    const angleStep = 360 / totalPlayers;
-    const angle = startAngle - (angleStep * index); // Subtract to go clockwise
-    const radius = 150; // Distance from the center
-  
-    // Convert angle to radians and calculate position
-    const angleInRadians = (angle * Math.PI) / 180;
-    const x = 200 + radius * Math.cos(angleInRadians);
-    const y = 200 + radius * Math.sin(angleInRadians);
-  
-    return {
-      left: `${x}px`,
-      top: `${y}px`,
-    };
+  resetCards() {
+    this.appState.resetCards();
   }
 }
