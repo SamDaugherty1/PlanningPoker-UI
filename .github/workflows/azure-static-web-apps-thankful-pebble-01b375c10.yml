@@ -24,12 +24,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: './planning-poker/package-lock.json'
           
       - name: Install Dependencies
         working-directory: ./planning-poker
-        run: npm ci
+        run: |
+          npm ci
+          npm install @rollup/rollup-linux-x64-gnu
         
       - name: Build Angular App
         working-directory: ./planning-poker
