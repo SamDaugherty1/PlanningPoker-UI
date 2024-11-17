@@ -1,0 +1,55 @@
+// Variables
+$stats-bg: rgba(0, 0, 0, 0.85);
+$stats-border: rgba(255, 255, 255, 0.1);
+$stats-shadow: rgba(0, 0, 0, 0.3);
+
+:host {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.stats-container {
+    background: $stats-bg;
+    border: 1px solid $stats-border;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    gap: 1.5rem;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px $stats-shadow;
+}
+
+.stat-item {
+    text-align: center;
+    min-width: 100px;
+
+    .stat-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}

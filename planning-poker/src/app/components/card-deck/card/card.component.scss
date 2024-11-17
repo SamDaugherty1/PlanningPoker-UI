@@ -1,24 +1,107 @@
-.card-container {
-    position: absolute;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
+:host {
+    display: block;
+}
+
+.card {
     width: 60px;
-    height: 80px;
-    background-color: gray;
-    border: 2px solid black;
-    border-radius: 15%;
-    font-size: 14px;
-    text-align: center;
-    transform: translate(-50%, -50%);
+    height: 90px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
 
     &.highlight {
-      background-color: white;
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        border-color: #1565c0;
+        color: white;
+        box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+    }
+
+    &.placeholder {
+        background: rgba(0, 0, 0, 0.03);
+        background-image: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(0, 0, 0, 0.01) 10px,
+            rgba(0, 0, 0, 0.01) 20px
+        );
+        border: 2px dashed rgba(0, 0, 0, 0.1);
+        color: rgba(0, 0, 0, 0.3);
+        cursor: default;
+
+        &.has-value {
+            background: #e0e0e0;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.2);
+            color: rgba(0, 0, 0, 0.5);
+            background-image: none;
+        }
+
+        &:hover {
+            transform: none;
+            box-shadow: none;
+        }
     }
 
     &.hidden {
-      background-color: black;
+        background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
+        color: transparent;
+        cursor: default;
+
+        &:hover {
+            transform: none;
+            box-shadow: none;
+        }
     }
-  }
-  
+
+    // Style for special symbols
+    .infinity {
+        font-size: 2rem;
+        font-weight: normal;
+        line-height: 1;
+    }
+
+    .coffee {
+        font-size: 1.75rem;
+        font-weight: normal;
+        line-height: 1;
+    }
+
+    .view-only {
+        position: relative;
+        display: inline-block;
+
+        .view-only-icon {
+            font-size: 1.5rem;
+            line-height: 1;
+            opacity: 0.5;
+        }
+
+        .view-only-slash {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.7);
+            line-height: 1;
+        }
+    }
+}

@@ -1,0 +1,26 @@
+<div class="app-container">
+    <header>
+        <h1>Planning Poker</h1>
+        <div class="game-info" *ngIf="currentUser">
+            <div class="game-id">
+                Game ID: 
+                <span class="id-value">{{ currentUser.gameId }}</span>
+                <button (click)="copyGameId()" class="copy-button" [class.copied]="copied">
+                    <i class="fas" [class.fa-copy]="!copied" [class.fa-check]="copied"></i>
+                </button>
+            </div>
+        </div>
+        <div class="user-info" *ngIf="currentUser">
+            {{ currentUser.name }}
+        </div>
+    </header>
+    <main>
+        <router-outlet></router-outlet>
+    </main>
+    <footer>
+        <div class="footer-content">
+            <app-card-deck></app-card-deck>
+            <p>&copy; {{ currentYear }} Agile Planning Poker. All rights reserved. Made by Sam Daugherty</p>
+        </div>
+    </footer>
+</div>

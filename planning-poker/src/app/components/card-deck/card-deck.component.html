@@ -1,10 +1,23 @@
-<div class="card-deck-container">
-    @for (card of cards; track $index) {
-    <app-card [class.raised]="card.selected"
-     (onSelected)="onSelected(card.value)" [value]="card.value" [highlight]="card.selected">
-        <div>
-            <span>{{card.value}}</span>
+<div class="card-deck">
+    <div *ngFor="let card of cards" 
+         class="card"
+         [class.selected]="card.selected"
+         (click)="selectCard(card)">
+        <div class="card-content">
+            <span [class.infinity]="card.value === infinity"
+                  [class.coffee]="card.value === coffee">
+                {{ card.value === infinity ? '∞' :
+                   card.value === coffee ? '☕' :
+                   card.value }}
+            </span>
         </div>
-    </app-card>
-    }
+    </div>
+    <div class="card help-card" (click)="toggleHelpModal()">
+        <div class="help-content">
+            <span class="help-icon">?</span>
+            <span class="help-text">Help</span>
+        </div>
+    </div>
 </div>
+
+<app-help-modal *ngIf="showHelpModal" (close)="toggleHelpModal()"></app-help-modal>

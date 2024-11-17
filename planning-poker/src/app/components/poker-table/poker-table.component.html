@@ -1,18 +1,52 @@
-<div class="overall-container">
-<div class="table-container">
-    <div class="table"></div>
-
-    <button (click)="showCards = !showCards">
-        @if (!showCards) {
-            <span>Show</span>
-        } @else {
-            <span>Hide</span>
-        }
-    </button>
-    <div *ngFor="let player of players; let i = index" class="player"  [ngStyle]="getPlayerPosition(i, players.length)">
-        <app-card [hidden]="!showCards">
-            <span >{{ player.name }} {{player.selected}}</span>
-        </app-card>
+<div class="poker-table-container">
+    <div class="controls">
+        <div class="button-group">
+            <button (click)="showCards()"
+                    class="control-button"
+                    [disabled]="!(canShowCards$ | async) || (showCards$ | async)"
+                    [class.disabled]="!(canShowCards$ | async) || (showCards$ | async)">
+                Show Cards
+            </button>
+            <button (click)="resetCards()"
+                    class="control-button"
+                    [disabled]="!(showCards$ | async)"
+                    [class.disabled]="!(showCards$ | async)">
+                Reset
+            </button>
+        </div>
     </div>
-</div>
+
+    <div class="table">
+        <div class="players-container">
+            <ng-container *ngFor="let player of (players$ | async)">
+                <div class="player-card"
+                     [class.current-player]="player.name === (currentUser$ | async)?.name"
+                     [class.view-only]="player.viewOnly">
+                    <div class="card-container" 
+                         [class.has-card]="player.card !== null">
+                        <div class="card"
+                             [class.revealed]="showCards$ | async">
+                            <div class="card-content">
+                                <ng-container *ngIf="showCards$ | async">
+                                    <span [class.infinity]="player.card === infinity"
+                                          [class.coffee]="player.card === coffee">
+                                        {{ player.card === infinity ? '∞' :
+                                           player.card === coffee ? '☕' :
+                                           player.card }}
+                                    </span>
+                                </ng-container>
+                                <ng-container *ngIf="!(showCards$ | async) && player.card !== null">
+                                    <span>?</span>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="player-name" 
+                         [class.current-player]="player.name === (currentUser$ | async)?.name">
+                        {{ player.name }}
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
 </div>

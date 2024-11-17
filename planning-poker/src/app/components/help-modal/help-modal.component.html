@@ -1,0 +1,44 @@
+<div class="modal-backdrop" (click)="onClose()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Story Point Guide</h2>
+            <button class="close-button" (click)="onClose()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="guide-intro">
+                <p>Story points are relative units of measure for estimating the effort required to implement a user story. Here's what each point value typically represents:</p>
+            </div>
+            <div class="point-guide">
+                <button *ngFor="let guide of pointGuide" 
+                        class="point-item"
+                        (click)="selectCard(guide.points)">
+                    <div class="point-value">{{ guide.points }}</div>
+                    <div class="point-info">
+                        <div class="point-description">{{ guide.description }}</div>
+                        <div class="point-time">
+                            <ng-container *ngIf="guide.timeEstimate !== 'N/A' && guide.timeEstimate !== 'Unknown/needs breakdown'">
+                                Usually takes {{ guide.timeEstimate }}
+                            </ng-container>
+                            <ng-container *ngIf="guide.timeEstimate === 'N/A' || guide.timeEstimate === 'Unknown/needs breakdown'">
+                                {{ guide.timeEstimate }}
+                            </ng-container>
+                        </div>
+                    </div>
+                </button>
+            </div>
+            <div class="guide-tips">
+                <h3>Tips for Better Estimation</h3>
+                <ul>
+                    <li>Compare with previously completed stories</li>
+                    <li>Consider complexity, uncertainty, and effort</li>
+                    <li>Break down stories larger than 13 points</li>
+                    <li>Don't get hung up on exact numbers</li>
+                    <li>Use planning poker to reduce bias</li>
+                </ul>
+                <div class="time-note">
+                    <p><strong>Note:</strong> Time estimates are approximate and can vary based on team velocity and project complexity.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
