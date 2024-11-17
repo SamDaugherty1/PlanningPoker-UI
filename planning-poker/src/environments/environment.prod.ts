@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://your-production-api.com' // Update this with your production backend URL
+  apiUrl: 'https://planning-poker-api-b7gqerbraxcnexfg.centralus-01.azurewebsites.net'
 };
