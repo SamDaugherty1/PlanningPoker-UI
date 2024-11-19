@@ -1,7 +1,11 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/js/*"]
+    "exclude": [
+      "/images/*.{png,jpg,gif}",
+      "/css/*",
+      "/js/*"
+    ]
   },
   "cors": {
     "allowedOrigins": [
@@ -12,5 +16,21 @@
     "Access-Control-Allow-Origin": "https://planning-poker-api-b7gqerbraxcnexfg.centralus-01.azurewebsites.net",
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization"
-  }
+  },
+  "routes": [
+    {
+      "route": "/*",
+      "methods": [
+        "head",
+        "get",
+        "post",
+        "put",
+        "delete",
+        "connect",
+        "options",
+        "trace",
+        "patch"
+      ]
+    }
+  ]
 }
