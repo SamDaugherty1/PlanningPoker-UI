@@ -1,41 +1,28 @@
 import { Injectable } from '@angular/core';
-import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
-import { environment } from '../../environments/environment';
+import { HubConnection } from '@microsoft/signalr';
 import { Player } from '../models/player';
 import { PokerCard } from '../models/poker-card';
 import { GameEventService } from './game-event.service';
 import { UserService } from './user.service';
+import { ConnectionManagerService } from './connection-manager.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PokerHubConnectionService {
   private hubConnection: HubConnection;
-  private isConnected = false;
 
   constructor(
     private gameEvents: GameEventService,
-    private userService: UserService
+    private userService: UserService,
+    private connectionManager: ConnectionManagerService
   ) {
-    this.hubConnection = new HubConnectionBuilder()
-      .withUrl(`${environment.apiUrl}/api/connect`)
-      .withAutomaticReconnect()
-      .build();
-
+    this.hubConnection = this.connectionManager.getConnection();
     this.setupHubCallbacks();
   }
 
   public async ensureConnection(): Promise<void> {
-    if (!this.isConnected) {
-      try {
-        await this.hubConnection.start();
-        this.isConnected = true;
-        console.log('Connected to SignalR Hub');
-      } catch (error) {
-        console.error('Error connecting to SignalR Hub:', error);
-        throw error;
-      }
-    }
+    await this.connectionManager.ensureConnection();
   }
 
   public async joinGame(gameId: string, playerName: string, viewOnly = false): Promise<void> {
@@ -75,6 +62,16 @@ export class PokerHubConnectionService {
       await this.hubConnection.invoke('ResetCards');
     } catch (error) {
       console.error('Error resetting cards:', error);
+      throw error;
+    }
+  }
+
+  public async disconnect(): Promise<void> {
+    try {
+      await this.hubConnection.stop();
+      console.log('Disconnected from SignalR Hub');
+    } catch (error) {
+      console.error('Error disconnecting from SignalR Hub:', error);
       throw error;
     }
   }

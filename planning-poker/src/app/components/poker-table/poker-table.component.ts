@@ -67,9 +67,9 @@ export class PokerTableComponent implements OnInit, OnDestroy {
     this.appState.resetCards();
   }
 
-  leaveGame() {
+  async leaveGame() {
     // Remove the current user from the game
-    this.userService.clearCurrentUser();
+    await this.userService.clearCurrentUser();
     // Navigate back to the join page
     window.location.href = '/';
   }

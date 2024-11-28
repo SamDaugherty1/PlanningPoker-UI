@@ -4,6 +4,7 @@ import { RouterOutlet } from '@angular/router';
 import { CardDeckComponent } from '../card-deck/card-deck.component';
 import { UserService } from '../../services/user.service';
 import { User } from '../../models/player';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-layout',
@@ -14,11 +15,21 @@ import { User } from '../../models/player';
 })
 export class LayoutComponent implements OnDestroy {
   private userService = inject(UserService);
+  private subscription = new Subscription();
   
-  currentUser = this.userService.getCurrentUser();
+  currentUser: User | null = null;
   currentYear = new Date().getFullYear();
   copied = false;
   private copyTimeout: any;
+
+  constructor() {
+    // Subscribe to user changes
+    this.subscription.add(
+      this.userService.currentUser$.subscribe(user => {
+        this.currentUser = user;
+      })
+    );
+  }
 
   async copyGameId() {
     if (!this.currentUser?.gameId) return;
@@ -43,5 +54,7 @@ export class LayoutComponent implements OnDestroy {
     if (this.copyTimeout) {
       clearTimeout(this.copyTimeout);
     }
+    // Clean up subscription
+    this.subscription.unsubscribe();
   }
 }
