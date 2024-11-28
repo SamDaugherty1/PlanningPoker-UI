@@ -298,14 +298,17 @@ app-stats-display {
 @for $i from 1 through 12 {
   .player-card:nth-child(#{$i}) {
     $angle: ($i - 1) * 30deg; // 360° / 12 players = 30° spacing
-    $baseRadius: 140%;  
+    $baseRadius: 135%;  // Increased from 130%
     
-    // Adjust radius based on position to create oval shape
+    // Create more of a square/oval shape by adjusting positions
     $adjustedRadius: if($angle == 0deg or $angle == 180deg,
-      $baseRadius * 1.1,  // Top and bottom
+      $baseRadius * 0.9,   // Top and bottom - increased from 0.85
       if($angle == 90deg or $angle == 270deg,
-        $baseRadius * 0.95,  // Sides
-        $baseRadius        // Other positions
+        $baseRadius * 1.2,  // Sides - increased from 1.15
+        if($angle == 30deg or $angle == 150deg or $angle == 210deg or $angle == 330deg,
+          $baseRadius * 1.15,  // Diagonal positions - increased from 1.1
+          $baseRadius * 1.05   // Corner positions - increased from 1.0
+        )
       )
     );
     
