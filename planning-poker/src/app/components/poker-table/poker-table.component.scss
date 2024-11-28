@@ -72,6 +72,15 @@ $empty-spot: rgba(0, 0, 0, 0.3);
       transform: none;
       box-shadow: none;
     }
+
+    &.leave-button {
+        background-color: #dc3545;
+        margin-left: 1rem;
+
+        &:hover {
+            background-color: #c82333;
+        }
+    }
   }
 }
 
