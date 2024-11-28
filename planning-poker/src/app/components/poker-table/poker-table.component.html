@@ -52,5 +52,11 @@
                 </div>
             </ng-container>
         </div>
+
+        <div class="stats" *ngIf="showCards$ | async">
+            <div class="average" *ngIf="averageEstimate$ | async as average">
+                Average Estimate: {{ average | number:'1.1-1' }}
+            </div>
+        </div>
     </div>
 </div>
