@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { User } from '../models/player';
 import { PokerCard } from '../models/poker-card';
+import { ConnectionManagerService } from './connection-manager.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,6 +11,8 @@ export class UserService {
   private readonly storageKey = 'poker_user';
   private currentUserSubject = new BehaviorSubject<User | null>(this.loadUser());
   currentUser$ = this.currentUserSubject.asObservable();
+
+  constructor(private connectionManager: ConnectionManagerService) {}
 
   private loadUser(): User | null {
     const stored = localStorage.getItem(this.storageKey);
@@ -32,7 +35,10 @@ export class UserService {
     this.currentUserSubject.next(userData as User);
   }
 
-  clearCurrentUser() {
+  async clearCurrentUser() {
+    // First disconnect from SignalR
+    await this.connectionManager.disconnect();
+    // Then clear user data
     localStorage.removeItem(this.storageKey);
     this.currentUserSubject.next(null);
   }
