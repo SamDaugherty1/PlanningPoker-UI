@@ -22,7 +22,7 @@
   "routes": [
     {
       "route": "/*",
-      "rewrite": "/index.html",
+      "redirect": "/index.html",
       "statusCode": 200
     }
   ],
