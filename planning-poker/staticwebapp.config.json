@@ -4,7 +4,9 @@
     "exclude": [
       "/images/*.{png,jpg,gif}",
       "/css/*",
-      "/js/*"
+      "/js/*",
+      "/assets/*",
+      "/*.{ico,png,jpg,gif}"
     ]
   },
   "cors": {
@@ -20,17 +22,14 @@
   "routes": [
     {
       "route": "/*",
-      "methods": [
-        "head",
-        "get",
-        "post",
-        "put",
-        "delete",
-        "connect",
-        "options",
-        "trace",
-        "patch"
-      ]
+      "serve": "/index.html",
+      "statusCode": 200
     }
-  ]
+  ],
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.html",
+      "statusCode": 200
+    }
+  }
 }
