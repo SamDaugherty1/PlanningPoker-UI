@@ -1,21 +1,37 @@
 .card-deck-container {
+    width: 100%;
     display: flex;
     justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    width: 700px;
-    margin: auto;
-    padding: 1rem;
+    position: relative;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 auto;
+    white-space: nowrap;
+    
+    // Hide scrollbar for Chrome/Safari while keeping functionality
+    &::-webkit-scrollbar {
+        height: 4px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 2px;
+    }
 }
 
 .card-deck {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  background-color: #fff;
-  border-top: 1px solid #e0e0e0;
+    display: inline-flex;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    padding: 1rem;
+    background-color: #fff;
+    border-top: 1px solid #e0e0e0;
+    white-space: nowrap;
+    margin: 0 auto;
 
   .card {
     width: 60px;

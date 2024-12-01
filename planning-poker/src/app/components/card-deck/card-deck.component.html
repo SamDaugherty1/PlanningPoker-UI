@@ -1,21 +1,23 @@
-<div class="card-deck">
-    <div *ngFor="let card of cards" 
-         class="card"
-         [class.selected]="card.selected"
-         (click)="selectCard(card)">
-        <div class="card-content">
-            <span [class.infinity]="card.value === infinity"
-                  [class.coffee]="card.value === coffee">
-                {{ card.value === infinity ? '∞' :
-                   card.value === coffee ? '☕' :
-                   card.value }}
-            </span>
+<div class="card-deck-container">
+    <div class="card-deck">
+        <div *ngFor="let card of cards" 
+             class="card"
+             [class.selected]="card.selected"
+             (click)="selectCard(card)">
+            <div class="card-content">
+                <span [class.infinity]="card.value === infinity"
+                      [class.coffee]="card.value === coffee">
+                    {{ card.value === infinity ? '∞' :
+                       card.value === coffee ? '☕' :
+                       card.value }}
+                </span>
+            </div>
         </div>
-    </div>
-    <div class="card help-card" (click)="toggleHelpModal()">
-        <div class="help-content">
-            <span class="help-icon">?</span>
-            <span class="help-text">Help</span>
+        <div class="card help-card" (click)="toggleHelpModal()">
+            <div class="help-content">
+                <span class="help-icon">?</span>
+                <span class="help-text">Help</span>
+            </div>
         </div>
     </div>
 </div>
