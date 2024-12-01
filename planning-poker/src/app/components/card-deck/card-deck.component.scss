@@ -1,12 +1,8 @@
 .card-deck-container {
     width: 100%;
-    display: flex;
-    justify-content: center;
-    position: relative;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    margin: 0 auto;
-    white-space: nowrap;
+    padding: 0 1rem;
     
     // Hide scrollbar for Chrome/Safari while keeping functionality
     &::-webkit-scrollbar {
@@ -24,14 +20,16 @@
 }
 
 .card-deck {
-    display: inline-flex;
+    display: flex;
     flex-wrap: nowrap;
     gap: 0.5rem;
-    padding: 1rem;
+    min-width: min-content;
+    width: max-content;
+    margin: 0 auto;
+    padding: 0.5rem;
     background-color: #fff;
     border-top: 1px solid #e0e0e0;
     white-space: nowrap;
-    margin: 0 auto;
 
   .card {
     width: 60px;
