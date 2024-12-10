@@ -1,0 +1,36 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": [
+      "/images/*.{png,jpg,gif}",
+      "/css/*",
+      "/js/*",
+      "/assets/*",
+      "/*.{ico,png,jpg,gif}"
+    ]
+  },
+  "routes": [
+    {
+      "route": "/*",
+      "serve": "/index.html",
+      "statusCode": 200
+    }
+  ],
+  "cors": {
+    "allowedOrigins": [
+      "https://planning-poker-api-b7gqerbraxcnexfg.centralus-01.azurewebsites.net",
+      "https://planningpoker.agiledevelopers.org"
+    ]
+  },
+  "globalHeaders": {
+    "Access-Control-Allow-Origin": "https://planning-poker-api-b7gqerbraxcnexfg.centralus-01.azurewebsites.net, https://planningpoker.agiledevelopers.org",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization"
+  },
+  "mimeTypes": {
+    ".json": "text/json",
+    ".css": "text/css",
+    ".js": "text/javascript",
+    ".html": "text/html"
+  }
+}
