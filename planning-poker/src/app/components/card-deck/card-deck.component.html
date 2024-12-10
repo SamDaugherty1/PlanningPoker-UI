@@ -1,24 +1,24 @@
 <div class="card-deck-container">
     <div class="card-deck">
-        <div *ngFor="let card of cards" 
-             class="card"
-             [class.selected]="card.selected"
-             (click)="selectCard(card)">
+        <app-card *ngFor="let card of cards"
+                [highlight]="card.selected"
+                [value]="card.value"
+                (onSelected)="selectCard(card)">
             <div class="card-content">
-                <span [class.infinity]="card.value === infinity"
-                      [class.coffee]="card.value === coffee">
-                    {{ card.value === infinity ? '∞' :
-                       card.value === coffee ? '☕' :
-                       card.value }}
+                <span [class.infinity]="isSpecialCard(card.value, 'infinity')"
+                      [class.coffee]="isSpecialCard(card.value, 'coffee')">
+                    {{ getDisplayValue(card.value) }}
                 </span>
             </div>
-        </div>
-        <div class="card help-card" (click)="toggleHelpModal()">
+        </app-card>
+        <app-card *ngIf="hasSelectedCard()"
+                 [placeholder]="true"
+                 (onSelected)="toggleHelpModal()">
             <div class="help-content">
                 <span class="help-icon">?</span>
                 <span class="help-text">Help</span>
             </div>
-        </div>
+        </app-card>
     </div>
 </div>
 
