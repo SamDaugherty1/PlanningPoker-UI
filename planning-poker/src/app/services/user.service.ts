@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { User } from '../models/player';
-import { PokerCard } from '../models/poker-card';
 import { ConnectionManagerService } from './connection-manager.service';
 
 @Injectable({
@@ -17,28 +16,58 @@ export class UserService {
   private loadUser(): User | null {
     const stored = localStorage.getItem(this.storageKey);
     if (stored) {
-      const user = JSON.parse(stored);
-      // Always reset card when loading from storage
-      user.card = null;
-      return user;
+      const userData = JSON.parse(stored);
+      // Always start with no card selected
+      return {
+        ...userData,
+        card: null
+      };
     }
     return null;
   }
 
   getCurrentUser(): User | null {
-    return this.currentUserSubject.value;
+    const user = this.currentUserSubject.value;
+    if (user) {
+      // Always ensure card is null in local state
+      return { ...user, card: null };
+    }
+    return null;
   }
 
-  setCurrentUser(userData: { name: string; gameId: string; viewOnly?: boolean }) {
+  setCurrentUser(userData: { name: string; gameId: string; viewOnly?: boolean; id?: string }) {
+    // Create user with null card
+    const user: User = {
+      ...userData,
+      card: null,
+      id: userData.id || '', // ID will be assigned by server
+      viewOnly: userData.viewOnly || false
+    };
+    
+    localStorage.setItem(this.storageKey, JSON.stringify(user));
+    this.currentUserSubject.next(user);
+  }
 
-    localStorage.setItem(this.storageKey, JSON.stringify(userData));
-    this.currentUserSubject.next(userData as User);
+  resetUserCard() {
+    const currentUser = this.getCurrentUser();
+    if (currentUser) {
+      const updatedUser = { ...currentUser, card: null };
+      localStorage.setItem(this.storageKey, JSON.stringify(updatedUser));
+      this.currentUserSubject.next(updatedUser);
+    }
+  }
+
+  updateUserId(id: string) {
+    const currentUser = this.getCurrentUser();
+    if (currentUser) {
+      const updatedUser = { ...currentUser, id };
+      localStorage.setItem(this.storageKey, JSON.stringify(updatedUser));
+      this.currentUserSubject.next(updatedUser);
+    }
   }
 
   async clearCurrentUser() {
-    // First disconnect from SignalR
     await this.connectionManager.disconnect();
-    // Then clear user data
     localStorage.removeItem(this.storageKey);
     this.currentUserSubject.next(null);
   }
@@ -50,16 +79,5 @@ export class UserService {
   isInGame(gameId: string): boolean {
     const user = this.getCurrentUser();
     return !!user && user.gameId === gameId;
-  }
-
-  updateCard(card: PokerCard | null) {
-    const currentUser = this.getCurrentUser();
-    if (currentUser) {
-      const updatedUser = { ...currentUser, card };
-      // Don't store card in localStorage
-      const storageUser = { ...updatedUser, card: null };
-      localStorage.setItem(this.storageKey, JSON.stringify(storageUser));
-      this.currentUserSubject.next(updatedUser);
-    }
   }
 }

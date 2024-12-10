@@ -32,15 +32,10 @@ export class AppStateService {
       const serverCurrentUser = players.find(p => p.name === currentUser.name);
       const otherPlayers = players.filter(p => p.name !== currentUser.name);
 
-      if (serverCurrentUser && serverCurrentUser.card !== currentUser.card) {
-        this.userService.updateCard(serverCurrentUser.card);
+      if (serverCurrentUser) {
+        // Use server state directly
+        this._players.next([serverCurrentUser, ...otherPlayers]);
       }
-
-      const updatedPlayers = serverCurrentUser 
-        ? [serverCurrentUser, ...otherPlayers]
-        : [currentUser, ...otherPlayers];
-
-      this._players.next(updatedPlayers);
     });
 
     this.gameEvents.showCards$.subscribe(() => {
@@ -49,10 +44,13 @@ export class AppStateService {
 
     this.gameEvents.resetCards$.subscribe(() => {
       this._showCards.next(false);
-      const currentUser = this.userService.getCurrentUser();
-      if (currentUser && currentUser.card !== null) {
-        this.userService.updateCard(null);
-      }
+      // Update players to ensure their cards are reset
+      const players = this._players.value;
+      const updatedPlayers = players.map(player => ({
+        ...player,
+        card: null
+      }));
+      this._players.next(updatedPlayers);
     });
   }
 
@@ -61,7 +59,12 @@ export class AppStateService {
   }
 
   public async resetCards(): Promise<void> {
-    await this.hubConnection.resetCards();
+    try {
+      await this.hubConnection.resetCards();
+      this.userService.resetUserCard();
+    } catch (error) {
+      console.error('Error resetting cards:', error);
+    }
   }
 
   public async selectCard(card: PokerCard | null): Promise<void> {
@@ -70,18 +73,41 @@ export class AppStateService {
 
     try {
       await this.hubConnection.selectCard(card);
-      this.userService.updateCard(card);
-
-      const otherPlayers = this._players.value.filter(p => p.name !== currentUser.name);
-      this._players.next([currentUser, ...otherPlayers]);
     } catch (error) {
       console.error('Error selecting card:', error);
     }
   }
 
+  public async joinGame(gameId: string, name: string, viewOnly: boolean = false) {
+    try {
+      await this.hubConnection.ensureConnection();
+      await this.hubConnection.joinGame(gameId, name, viewOnly);
+      
+      // Set initial user state - ID will be updated when server state is received
+      this.userService.setCurrentUser({ name, gameId, viewOnly });
+      
+      // Subscribe to server state updates
+      this.gameEvents.updatePlayers$.subscribe(players => {
+        const currentUser = this.userService.getCurrentUser();
+        if (currentUser) {
+          // Find the current user in the server state and update the ID
+          const serverUser = players.find(p => p.name === currentUser.name);
+          if (serverUser && (!currentUser.id || currentUser.id !== serverUser.id)) {
+            this.userService.updateUserId(serverUser.id);
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error joining game:', error);
+    }
+  }
+
   public getCurrentUser(): Player | null {
-    const user = this.userService.getCurrentUser();
-    if (!user) return null;
-    return {...user};
+    // Get current user from players list to ensure we have server state
+    const currentUser = this.userService.getCurrentUser();
+    if (!currentUser) return null;
+
+    const serverPlayer = this._players.value.find(p => p.name === currentUser.name);
+    return serverPlayer || null;
   }
 }

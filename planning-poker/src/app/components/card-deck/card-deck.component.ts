@@ -2,14 +2,12 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PokerCard } from '../../models/poker-card';
 import { AppStateService } from '../../services/app-state.service';
-import { UserService } from '../../services/user.service';
 import { Subscription } from 'rxjs';
 import { HelpModalComponent } from '../help-modal/help-modal.component';
 import { CardComponent } from './card/card.component';
 
 interface CardOption {
   value: PokerCard;
-  selected: boolean;
 }
 
 @Component({
@@ -21,7 +19,6 @@ interface CardOption {
 })
 export class CardDeckComponent implements OnInit, OnDestroy {
   private appStateService = inject(AppStateService);
-  private userService = inject(UserService);
   private subscription?: Subscription;
 
   infinity = PokerCard.Infinity;
@@ -29,25 +26,20 @@ export class CardDeckComponent implements OnInit, OnDestroy {
   showHelpModal = false;
 
   cards: CardOption[] = [
-    { value: PokerCard.One, selected: false },
-    { value: PokerCard.Two, selected: false },
-    { value: PokerCard.Three, selected: false },
-    { value: PokerCard.Five, selected: false },
-    { value: PokerCard.Eight, selected: false },
-    { value: PokerCard.Thirteen, selected: false },
-    { value: PokerCard.TwentyOne, selected: false },
-    { value: PokerCard.ThirtyFour, selected: false },
-    { value: PokerCard.Coffee, selected: false },
-    { value: PokerCard.Infinity, selected: false }
+    { value: PokerCard.One },
+    { value: PokerCard.Two },
+    { value: PokerCard.Three },
+    { value: PokerCard.Five },
+    { value: PokerCard.Eight },
+    { value: PokerCard.Thirteen },
+    { value: PokerCard.TwentyOne },
+    { value: PokerCard.ThirtyFour },
+    { value: PokerCard.Coffee },
+    { value: PokerCard.Infinity }
   ];
 
   ngOnInit() {
-    // Update card selection when user changes
-    this.subscription = this.userService.currentUser$.subscribe(user => {
-      this.cards.forEach(card => {
-        card.selected = card.value === user?.card;
-      });
-    });
+    // No need to subscribe to user changes since we'll get server state
   }
 
   ngOnDestroy() {
@@ -55,32 +47,26 @@ export class CardDeckComponent implements OnInit, OnDestroy {
   }
 
   async selectCard(selectedCard: CardOption) {
-    const currentUser = this.userService.getCurrentUser();
+    const currentUser = this.appStateService.getCurrentUser();
     if (!currentUser || currentUser.viewOnly) return;
 
     // If clicking the currently selected card, deselect it
     if (currentUser.card === selectedCard.value) {
-      this.cards.forEach(card => card.selected = false);
-      this.userService.updateCard(null);
       await this.appStateService.selectCard(null);
     } else {
-      // Update selection in UI
-      this.cards.forEach(card => {
-        card.selected = card === selectedCard;
-      });
-
-      // Update user's card and notify server
-      this.userService.updateCard(selectedCard.value);
       await this.appStateService.selectCard(selectedCard.value);
     }
   }
 
-  toggleHelpModal() {
-    this.showHelpModal = !this.showHelpModal;
+  isCardSelected(card: CardOption): boolean {
+    const currentUser = this.appStateService.getCurrentUser();
+    return currentUser?.card === card.value;
   }
 
-  hasSelectedCard(): boolean {
-    return this.cards.some(card => card.selected);
+  toggleHelpModal() {
+    console.log('Toggling help modal, current state:', this.showHelpModal);
+    this.showHelpModal = !this.showHelpModal;
+    console.log('New help modal state:', this.showHelpModal);
   }
 
   getDisplayValue(value: PokerCard): string {

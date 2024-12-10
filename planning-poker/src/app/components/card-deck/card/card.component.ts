@@ -16,8 +16,6 @@ export class CardComponent {
   @Output() onSelected = new EventEmitter<number | null>();
 
   select() {
-    if (!this.placeholder) {
-      this.onSelected.emit(this.value);
-    }
+    this.onSelected.emit(this.value);
   }
 }

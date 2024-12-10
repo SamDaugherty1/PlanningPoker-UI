@@ -2,7 +2,6 @@ import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppStateService } from '../../services/app-state.service';
 import { PokerCard } from '../../models/poker-card';
-import { UserService } from '../../services/user.service'; // Added import statement
 
 @Component({
   selector: 'app-help-modal',
@@ -14,14 +13,13 @@ import { UserService } from '../../services/user.service'; // Added import state
 export class HelpModalComponent {
   @Output() close = new EventEmitter<void>();
   private readonly appState = inject(AppStateService);
-  private readonly userService = inject(UserService); // Added injection statement
 
   onClose() {
     console.log('Closing modal');
     this.close.emit();
   }
 
-  selectCard(points: string) {
+  async selectCard(points: string) {
     let value: number | null = null;
     
     switch(points) {
@@ -37,8 +35,7 @@ export class HelpModalComponent {
     }
 
     if (value !== null) {
-      this.userService.updateCard(value);
-      this.appState.selectCard(value);
+      await this.appState.selectCard(value);
       this.close.emit();
     }
   }

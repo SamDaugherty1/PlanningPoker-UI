@@ -1,7 +1,7 @@
 <div class="card-deck-container">
     <div class="card-deck">
         <app-card *ngFor="let card of cards"
-                [highlight]="card.selected"
+                [highlight]="isCardSelected(card)"
                 [value]="card.value"
                 (onSelected)="selectCard(card)">
             <div class="card-content">
@@ -12,7 +12,6 @@
             </div>
         </app-card>
         <app-card [placeholder]="true"
-                 [hidden]="!hasSelectedCard()"
                  (onSelected)="toggleHelpModal()">
             <div class="help-content">
                 <span class="help-icon">?</span>
