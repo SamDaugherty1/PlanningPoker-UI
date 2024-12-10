@@ -36,7 +36,11 @@ export class AppStateService {
         this.userService.updateCard(serverCurrentUser.card);
       }
 
-      this._players.next([currentUser, ...otherPlayers]);
+      const updatedPlayers = serverCurrentUser 
+        ? [serverCurrentUser, ...otherPlayers]
+        : [currentUser, ...otherPlayers];
+
+      this._players.next(updatedPlayers);
     });
 
     this.gameEvents.showCards$.subscribe(() => {
