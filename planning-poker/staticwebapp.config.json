@@ -24,5 +24,11 @@
       "rewrite": "/index.html",
       "statusCode": 200
     }
-  }
+  },
+  "routes": [
+    {
+      "route": "/*",
+      "rewrite": "/index.html"
+    }
+  ]
 }
