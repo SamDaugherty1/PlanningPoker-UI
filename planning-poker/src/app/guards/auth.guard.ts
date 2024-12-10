@@ -9,9 +9,17 @@ export const authGuard: CanActivateFn = async (route, state) => {
   const hubConnection = inject(PokerHubConnectionService);
 
   const user = userService.getCurrentUser();
+  const gameId = route.params['id'];
   
+  // If no user, redirect to login with game ID
   if (!user) {
-    router.navigate(['/login']);
+    router.navigate(['/login'], { queryParams: { id: gameId } });
+    return false;
+  }
+
+  // If game ID in URL doesn't match user's game ID, redirect to login
+  if (gameId && gameId !== user.gameId) {
+    router.navigate(['/login'], { queryParams: { id: gameId } });
     return false;
   }
 
@@ -24,7 +32,7 @@ export const authGuard: CanActivateFn = async (route, state) => {
   } catch (error) {
     console.error('Failed to join game:', error);
     userService.clearCurrentUser();
-    router.navigate(['/login']);
+    router.navigate(['/login'], { queryParams: { id: gameId } });
     return false;
   }
 };

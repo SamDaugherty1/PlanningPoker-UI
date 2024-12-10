@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { CardDeckComponent } from '../card-deck/card-deck.component';
 import { AppStateService } from '../../services/app-state.service';
 import { UserService } from '../../services/user.service';
@@ -17,6 +18,7 @@ import { Subscription, map, distinctUntilChanged } from 'rxjs';
 export class PokerTableComponent implements OnInit, OnDestroy {
   private appState = inject(AppStateService);
   private userService = inject(UserService);
+  private route = inject(ActivatedRoute);
   private subscriptions = new Subscription();
 
   players$ = this.appState.players$;
@@ -52,19 +54,45 @@ export class PokerTableComponent implements OnInit, OnDestroy {
   );
 
   ngOnInit() {
-    // No need to watch for matching cards anymore
+    // Subscribe to route params to get game ID
+    this.subscriptions.add(
+      this.route.params.subscribe(params => {
+        const gameId = params['id'];
+        const currentUser = this.userService.getCurrentUser();
+        
+        // If user exists but game ID doesn't match, update it
+        if (currentUser && currentUser.gameId !== gameId) {
+          this.userService.setCurrentUser({
+            ...currentUser,
+            gameId
+          });
+        }
+      })
+    );
   }
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
 
-  showCards() {
-    this.appState.showCards();
+  getDisplayValue(value: PokerCard | null): string {
+    if (value === null) return '-';
+    switch (value) {
+      case PokerCard.Infinity:
+        return '∞';
+      case PokerCard.Coffee:
+        return '☕';
+      default:
+        return value.toString();
+    }
   }
 
-  resetCards() {
-    this.appState.resetCards();
+  async showCards() {
+    await this.appState.showCards();
+  }
+
+  async resetCards() {
+    await this.appState.resetCards();
   }
 
   async leaveGame() {
