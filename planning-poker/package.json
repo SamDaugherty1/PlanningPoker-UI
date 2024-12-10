@@ -4,8 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
-    "postbuild": "cp staticwebapp.config.json dist/planning-poker/",
+    "build": "ng build && cp src/staticwebapp.config.json dist/planning-poker/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
