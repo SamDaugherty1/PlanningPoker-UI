@@ -11,8 +11,8 @@
                 </span>
             </div>
         </app-card>
-        <app-card *ngIf="hasSelectedCard()"
-                 [placeholder]="true"
+        <app-card [placeholder]="true"
+                 [hidden]="!hasSelectedCard()"
                  (onSelected)="toggleHelpModal()">
             <div class="help-content">
                 <span class="help-icon">?</span>
